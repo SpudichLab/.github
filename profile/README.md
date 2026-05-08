@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://images.squarespace-cdn.com/content/v1/55cbcdf4e4b0fe0a5d68c8fa/1492558635632-VIGGXTSI3FJQ5ARV6RM4/image-asset.jpeg?format=1500w" alt="Spudich Lab" width="800" />
+</p>
+
 # Spudich Lab
 
 [Stanford University · Department of Biochemistry](https://biochemistry.stanford.edu/people/james-spudich)
