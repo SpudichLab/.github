@@ -1,8 +1,8 @@
 name: Security
 
 # Belt-and-suspenders security gate. Pairs with GitHub CodeQL "default setup"
-# (Settings -> Code security -> Code scanning), which covers code vulnerabilities
-# like ReDoS / injection. This workflow adds secret + dependency scanning.
+# (repo Settings -> Code security -> Code scanning), which covers code
+# vulnerabilities like ReDoS / injection. This adds secret + dependency scanning.
 on:
   push:
     branches: [$default-branch]
@@ -36,16 +36,18 @@ jobs:
   dependency-audit:
     name: pip-audit (dependency CVEs)
     runs-on: ubuntu-latest
-    if: hashFiles('pyproject.toml') != ''
     # Informational: surfaces known-vulnerable dependencies without blocking a
     # merge (research deps often carry advisories with no fix available yet).
-    # Review the annotations and bump the package once a fix exists.
+    # Steps self-skip when there is no pyproject.toml to audit.
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
+        if: hashFiles('pyproject.toml') != ''
         uses: astral-sh/setup-uv@v3
       - name: Export locked dependencies
+        if: hashFiles('pyproject.toml') != ''
         run: uv export --format requirements-txt -o requirements.txt
       - name: Audit dependencies
+        if: hashFiles('pyproject.toml') != ''
         run: uvx pip-audit -r requirements.txt
