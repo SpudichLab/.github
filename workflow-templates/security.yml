@@ -1,0 +1,53 @@
+name: Security
+
+# Belt-and-suspenders security gate. Pairs with GitHub CodeQL "default setup"
+# (repo Settings -> Code security -> Code scanning), which covers code
+# vulnerabilities like ReDoS / injection. This adds secret + dependency scanning.
+on:
+  push:
+    branches: [$default-branch]
+  pull_request:
+    branches: [$default-branch]
+  schedule:
+    - cron: "0 6 * * 1"  # weekly - catches newly-disclosed CVEs in unchanged deps
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secret-scan:
+    name: gitleaks (secrets / keys / tokens)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.27.2/gitleaks_8.27.2_linux_x64.tar.gz \
+            | tar -xz -C /usr/local/bin gitleaks
+      - name: Scan git history for secrets
+        run: gitleaks detect --source . --redact
+
+  dependency-audit:
+    name: pip-audit (dependency CVEs)
+    runs-on: ubuntu-latest
+    # Informational: surfaces known-vulnerable dependencies without blocking a
+    # merge (research deps often carry advisories with no fix available yet).
+    # Steps self-skip when there is no pyproject.toml to audit.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        if: hashFiles('pyproject.toml') != ''
+        uses: astral-sh/setup-uv@v3
+      - name: Export locked dependencies
+        if: hashFiles('pyproject.toml') != ''
+        run: uv export --no-emit-project --format requirements-txt -o requirements.txt
+      - name: Audit dependencies
+        if: hashFiles('pyproject.toml') != ''
+        run: uvx pip-audit -r requirements.txt
