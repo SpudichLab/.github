@@ -1,0 +1,7 @@
+{
+  "name": "Spudich Lab — Security scan",
+  "description": "Secret scanning (gitleaks) + Python dependency audit (pip-audit). Pairs with CodeQL default setup.",
+  "iconName": "shield",
+  "categories": ["Security"],
+  "filePatterns": [".*"]
+}
