@@ -47,7 +47,7 @@ jobs:
         uses: astral-sh/setup-uv@v3
       - name: Export locked dependencies
         if: hashFiles('pyproject.toml') != ''
-        run: uv export --format requirements-txt -o requirements.txt
+        run: uv export --no-emit-project --format requirements-txt -o requirements.txt
       - name: Audit dependencies
         if: hashFiles('pyproject.toml') != ''
         run: uvx pip-audit -r requirements.txt
